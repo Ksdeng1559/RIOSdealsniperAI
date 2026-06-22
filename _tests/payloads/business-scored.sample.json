@@ -1,0 +1,74 @@
+{
+  "event": "business.scored",
+  "source": "leadsniperAI",
+  "business": {
+    "id": "lsa_business_001",
+    "name": "Joe's Plumbing Services",
+    "owner_name": "Joe Smith",
+    "category": "Plumbing",
+    "address": "123 Main St, Vancouver BC",
+    "phone": "+1-604-555-0100",
+    "email": "owner@example.ca",
+    "website": "https://example.ca"
+  },
+  "webmorphasis": {
+    "grade": "D",
+    "score": 34,
+    "signals_failed": [
+      "no_contact_form",
+      "missing_booking_link",
+      "slow_mobile",
+      "missing_schema"
+    ],
+    "site_preview_url": "https://revamp.dev/preview/example",
+    "scored_at": "2026-06-22T14:00:00Z"
+  },
+  "reputation": {
+    "avg_rating": 4.8,
+    "review_count": 1200,
+    "response_rate": 0.08,
+    "recent_negative_count": 3
+  },
+  "signals": [
+    {
+      "signal_type": "retirement",
+      "signal_name": "business_age_20_plus",
+      "severity": "HIGH",
+      "confidence": 0.82,
+      "source": "website",
+      "evidence": "Website says serving Vancouver since 1999."
+    },
+    {
+      "signal_type": "succession",
+      "signal_name": "owner_mentioned_in_reviews",
+      "severity": "HIGH",
+      "confidence": 0.74,
+      "source": "google_reviews",
+      "evidence": "Multiple reviews mention Joe by name."
+    },
+    {
+      "signal_type": "technology_gap",
+      "signal_name": "no_online_booking",
+      "severity": "MEDIUM",
+      "confidence": 0.9,
+      "source": "website_scan",
+      "evidence": "No booking link detected."
+    },
+    {
+      "signal_type": "deal_quality",
+      "signal_name": "essential_service",
+      "severity": "POSITIVE",
+      "confidence": 0.9,
+      "source": "category",
+      "evidence": "Plumbing is an essential home service."
+    },
+    {
+      "signal_type": "deal_quality",
+      "signal_name": "high_review_count",
+      "severity": "POSITIVE",
+      "confidence": 0.95,
+      "source": "google_business_profile",
+      "evidence": "Business has over 1,000 reviews."
+    }
+  ]
+}
