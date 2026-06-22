@@ -29,69 +29,48 @@ What should Dennis do next?
 
 ---
 
-# RIOS + ICM Architecture Standard
+# RIOS + ICM + MWP Standard
 
-Technical requirements in this repository are based on the RIOS architecture and the Interpretive Contextual Method, abbreviated as ICM.
-
-RIOS defines the operating flow:
+Technical requirements in this repository are based on three connected methods:
 
 ```text
-Research → Intelligence → Opportunity → Strategy → Execution
+RIOS = Research → Intelligence → Opportunity → Strategy → Execution
+ICM  = Data → Context → Signal → Interpretation → Score → Action
+MWP  = Numbered filesystem workspaces with markdown context and review gates
 ```
 
-ICM defines how the system must reason:
+RIOS defines the business intelligence architecture.
+
+ICM defines how the system reasons over raw data.
+
+MWP defines how Claude Code / Codex should execute the build.
+
+DealSniperAI must not score raw data directly. It must first interpret business context, create structured signals, assign confidence, then score and recommend action.
+
+MWP avoids unnecessary multi-agent orchestration for this sequential build. The filesystem becomes the orchestration layer:
 
 ```text
-Data → Context → Signal → Interpretation → Score → Action
+_workspaces/00_intake
+_workspaces/01_research
+_workspaces/02_context
+_workspaces/03_signal_mapping
+_workspaces/04_scoring
+_workspaces/05_storage
+_workspaces/06_api
+_workspaces/07_workflows
+_workspaces/08_dashboard
+_workspaces/09_review
 ```
 
-This means DealSniperAI must not score raw data directly.
+Each workspace carries markdown context, prompts, acceptance criteria, and handoff notes. Local scripts should handle deterministic mechanical tasks.
 
-It must first interpret the data in business context.
-
-Example:
-
-```text
-Old website
-```
-
-is not automatically an acquisition signal.
-
-But:
-
-```text
-Old website
-+ 20+ years in business
-+ strong reviews
-+ owner mentioned repeatedly in reviews
-+ no visible booking or CRM system
-```
-
-may indicate:
-
-```text
-Strong reputation
-+ owner dependency
-+ succession risk
-+ value creation upside
-```
-
-Claude Code / Codex must build the system around this ICM pipeline.
-
-Every technical component should preserve:
-
-- raw data
-- source evidence
-- interpreted signal
-- confidence level
-- score impact
-- recommended action
-
-The full requirement document is here:
+Full requirement documents:
 
 ```text
 _docs/TECHNICAL_REQUIREMENTS_RIOS.md
+_docs/MWP_EXECUTION_MODEL.md
 _context/interpretive-contextual-method.md
+_context/model-workspace-protocol.md
 ```
 
 ---
@@ -107,17 +86,21 @@ Claude Code or Codex should read the files in this exact order:
 4. _docs/TAD.md
 5. _docs/PRODUCT_DEFINITION.md
 6. _docs/TECHNICAL_REQUIREMENTS_RIOS.md
-7. _context/rios-framework.md
-8. _context/interpretive-contextual-method.md
-9. _context/deal-signals.md
-10. _context/scoring-models.md
-11. _supabase/schema.sql
-12. _api/fastapi-contract.md
-13. _workflows/workflow-001-business-scored.md
-14. _src/scoring/dealScoring.ts
-15. _prompts/hermes-workers.md
-16. _tests/payloads/business-scored.sample.json
-17. _tests/ACCEPTANCE_CHECKLIST.md
+7. _docs/MWP_EXECUTION_MODEL.md
+8. _context/rios-framework.md
+9. _context/interpretive-contextual-method.md
+10. _context/model-workspace-protocol.md
+11. _context/deal-signals.md
+12. _context/scoring-models.md
+13. _workspaces/README.md
+14. _workspaces/00_intake/README.md
+15. _supabase/schema.sql
+16. _api/fastapi-contract.md
+17. _workflows/workflow-001-business-scored.md
+18. _src/scoring/dealScoring.ts
+19. _prompts/hermes-workers.md
+20. _tests/payloads/business-scored.sample.json
+21. _tests/ACCEPTANCE_CHECKLIST.md
 ```
 
 ---
@@ -170,6 +153,33 @@ Supabase Deal Profile
         ↓
 Dashboard / CRM / Watchlist
 ```
+
+---
+
+# MWP Build Flow
+
+Claude Code / Codex should execute the build stage-by-stage:
+
+```text
+00_intake        Confirm scope and constraints
+01_research      Define raw data inputs
+02_context       Apply ICM context rules
+03_signal_mapping Convert context into DealSniper signals
+04_scoring       Calculate API/DQS/VCS/ARI
+05_storage       Implement Supabase persistence
+06_api           Implement API endpoints
+07_workflows     Implement n8n orchestration
+08_dashboard     Build profile and watchlist views
+09_review        Run acceptance review
+```
+
+At the end of each workspace, create or update `handoff.md` with:
+
+- what changed
+- files touched
+- tests run
+- open risks
+- next recommended step
 
 ---
 
@@ -301,8 +311,9 @@ Strong reputation
 # Repository Structure
 
 ```text
-_docs/                  Product, technical, and implementation docs
+_docs/                  Product, technical, MWP, and implementation docs
 _context/               Standing context files Claude Code should read first
+_workspaces/            MWP numbered workspaces
 _workflows/             n8n workflow specifications
 _supabase/              SQL schema and RLS policies
 _api/                   FastAPI endpoint specifications
@@ -334,6 +345,9 @@ Follow these rules when modifying this repository:
 12. Any owner-facing message must remain a reviewable draft unless a human explicitly approves later.
 13. Never jump from raw data directly to recommended action.
 14. Always follow: Data → Context → Signal → Interpretation → Score → Action.
+15. Work through `_workspaces/` sequentially using MWP.
+16. Use scripts for deterministic mechanical tasks.
+17. Write a `handoff.md` before moving to the next workspace.
 
 ---
 
@@ -346,19 +360,25 @@ Follow these rules when modifying this repository:
 - Add TypeScript config.
 - Add linting and formatting.
 
-## Step 2 — Supabase
+## Step 2 — MWP Intake
+
+- Start in `_workspaces/00_intake`.
+- Confirm scope and exclusions.
+- Create `handoff.md`.
+
+## Step 3 — Supabase
 
 - Apply `_supabase/schema.sql`.
 - Add RLS policies appropriate to the deployed app.
 - Create repository-level Supabase client helpers.
 
-## Step 3 — Scoring Engine
+## Step 4 — Scoring Engine
 
 - Promote `_src/scoring/dealScoring.ts` into the actual application source path.
 - Add unit tests.
 - Validate against `_tests/payloads/business-scored.sample.json`.
 
-## Step 4 — API Layer
+## Step 5 — API Layer
 
 - Implement:
   - `POST /dealsniper/ingest`
@@ -366,12 +386,12 @@ Follow these rules when modifying this repository:
   - `GET /dealsniper/profile/{business_id}`
   - `POST /dealsniper/brief`
 
-## Step 5 — n8n Bridge
+## Step 6 — n8n Bridge
 
 - Build Workflow 001 from `_workflows/workflow-001-business-scored.md`.
 - Connect LeadSniperAI `business.scored` event to DealSniper ingest.
 
-## Step 6 — Dashboard
+## Step 7 — Dashboard
 
 Create basic views:
 
@@ -381,9 +401,9 @@ Create basic views:
 /dealsniper/watchlist
 ```
 
-## Step 7 — Acceptance Testing
+## Step 8 — Acceptance Testing
 
-Run through `_tests/ACCEPTANCE_CHECKLIST.md`.
+Run through `_tests/ACCEPTANCE_CHECKLIST.md` and `_workspaces/09_review`.
 
 ---
 
@@ -481,6 +501,8 @@ DealSniperAI scores acquisition probability.
 RIOS interprets opportunity.
 
 ICM converts raw data into contextual intelligence.
+
+MWP structures the AI-assisted build process.
 
 Hermes generates intelligence.
 
