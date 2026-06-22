@@ -10,42 +10,78 @@ Build a system that discovers local businesses, identifies acquisition signals, 
 
 ## Architecture Standard
 
-All technical requirements are based on the RIOS architecture and the Interpretive Contextual Method (ICM).
-
-RIOS defines the operating flow:
+All technical requirements are based on three connected methods:
 
 ```text
-Research → Intelligence → Opportunity → Strategy → Execution
+RIOS = Research → Intelligence → Opportunity → Strategy → Execution
+ICM  = Data → Context → Signal → Interpretation → Score → Action
+MWP  = Numbered filesystem workspaces with markdown context and review gates
 ```
 
-ICM defines the reasoning flow:
+RIOS defines the business intelligence architecture.
 
-```text
-Data → Context → Signal → Interpretation → Score → Action
-```
+ICM defines the reasoning flow.
+
+MWP defines the build execution method for Claude Code / Codex.
 
 Claude Code must not build this as a simple scraper or static scoring tool. Every scoring path must preserve raw data, evidence, interpreted signal, confidence, and recommended action.
+
+## Model Workspace Protocol Requirement
+
+This repository uses Model Workspace Protocol for sequential AI-assisted development.
+
+Claude Code / Codex must work through `_workspaces/` in numbered order unless Dennis explicitly says otherwise:
+
+```text
+00_intake
+01_research
+02_context
+03_signal_mapping
+04_scoring
+05_storage
+06_api
+07_workflows
+08_dashboard
+09_review
+```
+
+Each workspace should be treated as the current execution context.
+
+Before coding in a stage, read that workspace's files.
+
+At the end of a stage, create or update `handoff.md` with:
+
+- what changed
+- files touched
+- tests run
+- open risks
+- next recommended step
 
 ## Read Order
 
 Claude Code must read these files before implementing:
 
 1. `CLAUDE.md`
-2. `IMPLEMENTATION_PLAN.md`
-3. `_docs/TAD.md`
-4. `_docs/PRODUCT_DEFINITION.md`
-5. `_docs/TECHNICAL_REQUIREMENTS_RIOS.md`
-6. `_context/rios-framework.md`
-7. `_context/interpretive-contextual-method.md`
-8. `_context/deal-signals.md`
-9. `_context/scoring-models.md`
-10. `_supabase/schema.sql`
-11. `_api/fastapi-contract.md`
-12. `_workflows/workflow-001-business-scored.md`
-13. `_src/scoring/dealScoring.ts`
-14. `_prompts/hermes-workers.md`
-15. `_tests/payloads/business-scored.sample.json`
-16. `_tests/ACCEPTANCE_CHECKLIST.md`
+2. `README.md`
+3. `IMPLEMENTATION_PLAN.md`
+4. `_docs/TAD.md`
+5. `_docs/PRODUCT_DEFINITION.md`
+6. `_docs/TECHNICAL_REQUIREMENTS_RIOS.md`
+7. `_docs/MWP_EXECUTION_MODEL.md`
+8. `_context/rios-framework.md`
+9. `_context/interpretive-contextual-method.md`
+10. `_context/model-workspace-protocol.md`
+11. `_context/deal-signals.md`
+12. `_context/scoring-models.md`
+13. `_workspaces/README.md`
+14. `_workspaces/00_intake/README.md`
+15. `_supabase/schema.sql`
+16. `_api/fastapi-contract.md`
+17. `_workflows/workflow-001-business-scored.md`
+18. `_src/scoring/dealScoring.ts`
+19. `_prompts/hermes-workers.md`
+20. `_tests/payloads/business-scored.sample.json`
+21. `_tests/ACCEPTANCE_CHECKLIST.md`
 
 ## Non-Negotiable Build Rules
 
@@ -62,6 +98,8 @@ Claude Code must read these files before implementing:
 - Best targets are strong businesses with weak systems and likely succession/exit pressure.
 - Never jump from raw data directly to recommended action.
 - Always follow: Data → Context → Signal → Interpretation → Score → Action.
+- Use deterministic scripts for mechanical tasks where possible.
+- Use the filesystem workspace as the orchestration layer.
 
 ## Phase 1 Scope
 
@@ -128,3 +166,4 @@ Every interpreted signal should follow this structure:
 - Make scoring weights configurable.
 - Make score outputs explainable.
 - Keep ICM logic visible in code comments and function names where possible.
+- Keep MWP stage handoffs current.
