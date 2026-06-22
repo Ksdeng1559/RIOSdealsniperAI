@@ -6,7 +6,25 @@ RIOS DealSniperAI — Business Acquisition Intelligence Platform.
 
 ## Mission
 
-Build a system that discovers local businesses, identifies acquisition signals, scores deal attractiveness, stores structured intelligence, and prepares owner outreach without automatically sending messages in Phase 1.
+Build a system that discovers local businesses, identifies acquisition signals, scores deal attractiveness, stores structured intelligence, and prepares reviewable owner-conversation drafts without automatically sending messages in Phase 1.
+
+## Architecture Standard
+
+All technical requirements are based on the RIOS architecture and the Interpretive Contextual Method (ICM).
+
+RIOS defines the operating flow:
+
+```text
+Research → Intelligence → Opportunity → Strategy → Execution
+```
+
+ICM defines the reasoning flow:
+
+```text
+Data → Context → Signal → Interpretation → Score → Action
+```
+
+Claude Code must not build this as a simple scraper or static scoring tool. Every scoring path must preserve raw data, evidence, interpreted signal, confidence, and recommended action.
 
 ## Read Order
 
@@ -15,13 +33,19 @@ Claude Code must read these files before implementing:
 1. `CLAUDE.md`
 2. `IMPLEMENTATION_PLAN.md`
 3. `_docs/TAD.md`
-4. `_context/rios-framework.md`
-5. `_context/deal-signals.md`
-6. `_context/scoring-models.md`
-7. `_supabase/schema.sql`
-8. `_api/fastapi-contract.md`
-9. `_workflows/workflow-001-business-scored.md`
-10. `_tests/payloads/business-scored.sample.json`
+4. `_docs/PRODUCT_DEFINITION.md`
+5. `_docs/TECHNICAL_REQUIREMENTS_RIOS.md`
+6. `_context/rios-framework.md`
+7. `_context/interpretive-contextual-method.md`
+8. `_context/deal-signals.md`
+9. `_context/scoring-models.md`
+10. `_supabase/schema.sql`
+11. `_api/fastapi-contract.md`
+12. `_workflows/workflow-001-business-scored.md`
+13. `_src/scoring/dealScoring.ts`
+14. `_prompts/hermes-workers.md`
+15. `_tests/payloads/business-scored.sample.json`
+16. `_tests/ACCEPTANCE_CHECKLIST.md`
 
 ## Non-Negotiable Build Rules
 
@@ -30,10 +54,14 @@ Claude Code must read these files before implementing:
 - Use full debug logging for ingestion, scoring, and workflow handoffs.
 - Do not send owner outreach automatically in Phase 1.
 - Store evidence and confidence for every score.
+- Store raw payloads for auditability.
+- Store interpreted signals separately from raw data.
 - Do not infer owner age as fact. Use age ranges only when evidence exists.
 - Treat low digital readiness as value creation potential, not automatic acquisition quality.
 - Strong reputation matters more than distress.
 - Best targets are strong businesses with weak systems and likely succession/exit pressure.
+- Never jump from raw data directly to recommended action.
+- Always follow: Data → Context → Signal → Interpretation → Score → Action.
 
 ## Phase 1 Scope
 
@@ -74,6 +102,22 @@ Every business should produce:
 }
 ```
 
+## Required Signal Shape
+
+Every interpreted signal should follow this structure:
+
+```json
+{
+  "signal_type": "succession",
+  "signal_name": "owner_mentioned_in_reviews",
+  "source": "google_reviews",
+  "evidence": "Multiple reviews mention owner by name",
+  "interpretation": "Customer trust may be tied to owner involvement",
+  "severity": "HIGH",
+  "confidence": 0.78
+}
+```
+
 ## Implementation Style
 
 - Prefer simple, modular architecture.
@@ -82,3 +126,5 @@ Every business should produce:
 - Use typed interfaces.
 - Store raw payloads for auditability.
 - Make scoring weights configurable.
+- Make score outputs explainable.
+- Keep ICM logic visible in code comments and function names where possible.
