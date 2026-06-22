@@ -29,6 +29,73 @@ What should Dennis do next?
 
 ---
 
+# RIOS + ICM Architecture Standard
+
+Technical requirements in this repository are based on the RIOS architecture and the Interpretive Contextual Method, abbreviated as ICM.
+
+RIOS defines the operating flow:
+
+```text
+Research → Intelligence → Opportunity → Strategy → Execution
+```
+
+ICM defines how the system must reason:
+
+```text
+Data → Context → Signal → Interpretation → Score → Action
+```
+
+This means DealSniperAI must not score raw data directly.
+
+It must first interpret the data in business context.
+
+Example:
+
+```text
+Old website
+```
+
+is not automatically an acquisition signal.
+
+But:
+
+```text
+Old website
++ 20+ years in business
++ strong reviews
++ owner mentioned repeatedly in reviews
++ no visible booking or CRM system
+```
+
+may indicate:
+
+```text
+Strong reputation
++ owner dependency
++ succession risk
++ value creation upside
+```
+
+Claude Code / Codex must build the system around this ICM pipeline.
+
+Every technical component should preserve:
+
+- raw data
+- source evidence
+- interpreted signal
+- confidence level
+- score impact
+- recommended action
+
+The full requirement document is here:
+
+```text
+_docs/TECHNICAL_REQUIREMENTS_RIOS.md
+_context/interpretive-contextual-method.md
+```
+
+---
+
 # Start Here
 
 Claude Code or Codex should read the files in this exact order:
@@ -39,16 +106,18 @@ Claude Code or Codex should read the files in this exact order:
 3. IMPLEMENTATION_PLAN.md
 4. _docs/TAD.md
 5. _docs/PRODUCT_DEFINITION.md
-6. _context/rios-framework.md
-7. _context/deal-signals.md
-8. _context/scoring-models.md
-9. _supabase/schema.sql
-10. _api/fastapi-contract.md
-11. _workflows/workflow-001-business-scored.md
-12. _src/scoring/dealScoring.ts
-13. _prompts/hermes-workers.md
-14. _tests/payloads/business-scored.sample.json
-15. _tests/ACCEPTANCE_CHECKLIST.md
+6. _docs/TECHNICAL_REQUIREMENTS_RIOS.md
+7. _context/rios-framework.md
+8. _context/interpretive-contextual-method.md
+9. _context/deal-signals.md
+10. _context/scoring-models.md
+11. _supabase/schema.sql
+12. _api/fastapi-contract.md
+13. _workflows/workflow-001-business-scored.md
+14. _src/scoring/dealScoring.ts
+15. _prompts/hermes-workers.md
+16. _tests/payloads/business-scored.sample.json
+17. _tests/ACCEPTANCE_CHECKLIST.md
 ```
 
 ---
@@ -91,6 +160,8 @@ n8n Workflow 001
         ↓
 DealSniper Signal Mapper
         ↓
+Interpretive Contextual Method
+        ↓
 API / DQS / VCS / ARI Scoring
         ↓
 Hermes / RIOS Intelligence Workers
@@ -99,6 +170,43 @@ Supabase Deal Profile
         ↓
 Dashboard / CRM / Watchlist
 ```
+
+---
+
+# Technical Requirements Summary
+
+## Research Layer
+
+- Receive `business.scored` events.
+- Store raw payloads.
+- Normalize business data.
+- Preserve original source fields.
+
+## Intelligence Layer
+
+- Convert raw data into structured DealSniper signals.
+- Preserve evidence for each signal.
+- Assign confidence to every inferred signal.
+- Separate fact from interpretation.
+
+## Opportunity Layer
+
+- Calculate API, DQS, VCS, and ARI separately.
+- Return score payloads for auditability.
+- Classify opportunities deterministically.
+
+## Strategy Layer
+
+- Recommend one next action based on classification.
+- Generate acquisition briefs only after score qualification.
+- Separate opportunity from risk.
+
+## Execution Layer
+
+- Store profiles in Supabase.
+- Display evidence, signals, scores, and actions in the dashboard.
+- Route only qualified records into watchlist or CRM.
+- Keep any owner-facing communication reviewable unless explicitly approved later.
 
 ---
 
@@ -224,6 +332,8 @@ Follow these rules when modifying this repository:
 10. Strong reputation matters more than distress.
 11. Phase 1 stores and scores only.
 12. Any owner-facing message must remain a reviewable draft unless a human explicitly approves later.
+13. Never jump from raw data directly to recommended action.
+14. Always follow: Data → Context → Signal → Interpretation → Score → Action.
 
 ---
 
@@ -354,8 +464,8 @@ The first working version should do only four things well:
 ```text
 Ingest business
 Map signals
-Score opportunity
-Store result
+Interpret context
+Store scored result
 ```
 
 Everything else comes after the scoring loop works.
@@ -369,6 +479,8 @@ LeadSniperAI discovers businesses.
 DealSniperAI scores acquisition probability.
 
 RIOS interprets opportunity.
+
+ICM converts raw data into contextual intelligence.
 
 Hermes generates intelligence.
 
